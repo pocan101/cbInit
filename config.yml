@@ -1,0 +1,140 @@
+
+version: 1.0
+title: Couchbase Template for Bucket Initialization
+author: Jose Cortes Diaz
+contact: jose.cortesdiaz@couchbase.com
+organization: Couchbase
+
+description: >
+  This template demonstrates an example use case for creating and configuring 
+  two Couchbase buckets, along with initializing example indexes. It serves as 
+  a guide for using templates to streamline Couchbase bucket setup.
+notes: >
+  Ensure that the Couchbase server is running and accessible before applying 
+  this template. Customize the buckets and indexes as per your use case.
+
+
+created: 2024-12-07
+last_updated: 2024-12-11
+
+tags:
+  - couchbase
+  - bucket initialization
+  - indexes
+  - templates
+
+use_cases:
+  - Simplified Couchbase bucket setup
+  - Reproducible environment configuration
+  - Template-based management for DevOps workflows
+
+compatibility:
+  couchbase_version: "7.x and above"
+  sdk_version: "3.x and above"
+requirements:
+  - A Couchbase server instance
+  - Administrative access to Couchbase
+  - Couchbase C++ SDK installed
+
+
+usage:
+    - command: cbInit --template bucket_template.yml
+    - description: Use this command to apply the bucket initialization template.
+documentation: README.txt
+
+connection_details:
+  user: Administrator
+  password: password
+  url: couchbases://ec2-3-88-72-54.compute-1.amazonaws.com
+  ca_certificate:
+    enabled: true
+    name: "ca_certificate.pem" # Name of the generated file
+    content: |
+      -----BEGIN CERTIFICATE-----
+      MIIDDDCCAfSgAwIBAgIIGA4YNVtbAwYwDQYJKoZIhvcNAQELBQAwJDEiMCAGA1UE
+      AxMZQ291Y2hiYXNlIFNlcnZlciAzNzJlZWY3MTAeFw0xMzAxMDEwMDAwMDBaFw00
+      OTEyMzEyMzU5NTlaMCQxIjAgBgNVBAMTGUNvdWNoYmFzZSBTZXJ2ZXIgMzcyZWVm
+      NzEwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDeMWK3CWJcbxXqD818
+      8JMIEz689ByxQpClCTqQn3IRLpQufV5EWOKoeQrIrLoxfBHy93j0LOaR57eztdXr
+      8R7SN4TNwK/hocjpbtjTic2nzAecMAQqhs8mc9aPNDtbJvxS/0IyxPnyEK0dN1ib
+      gUKX38NBW5uiAU5bugU+4mZX/KMFuI+DMvnKqItANB+Q7Opcwtna1Ke121zFntWV
+      z0TYReFgW4lgirvoC0gxmi61E0Jtr0ZXSMLv0L2SP5kLelKqxjYU4tmgdJvrrHD1
+      1pnVwhUrA6XpXy+PYehEUrRHPIa+j/3cv7ng/2D/XY7DS3kMxe4GzWQ89cKatcYZ
+      q+3TAgMBAAGjQjBAMA4GA1UdDwEB/wQEAwIBhjAPBgNVHRMBAf8EBTADAQH/MB0G
+      A1UdDgQWBBR8JCP7Kll4RS8Eh6awFFrdS1sGFjANBgkqhkiG9w0BAQsFAAOCAQEA
+      yK0TKRTxZXMHFAJ3JBCHOipVPlbCtaRBjCh6UKchcNXZESdA2BbDjlJWwP19x8xG
+      sBvpp1GWTkMzuRNilsWBterCnUW/HjPRagAXUZ6dx9gCZoRacMzEfKid6rz+1Drj
+      kX2syG3b0rfHcQqc/CMzrLruk+mLobHTxB5CRjtIJoIOMn7+laLwwnC+luZm5Z66
+      wGJMaY7BagzZk4GrWQXoeq2IdJyPEX2gnMOljpS7QqyodBseXw0u6RrohX0dhZX2
+      nzFSHWXJHYCYY9iYAFjJ8dUpffPBxYMwDHsz7XJwPooa+ylTXXcAGQb/irpEAb3S
+      uiXs9TY6QIDez+pxkDH0fw==
+      -----END CERTIFICATE-----
+
+
+buckets:
+  - name: example_bucket
+    ram_quota_mb: 5024
+    bucket_type: membase # couchbase or memcached
+    num_replicas: 1
+    flush_enabled: false
+    storage_backend: magma # couchstore or magma
+
+  - name: analytics_bucket
+    ram_quota_mb: 200
+    bucket_type: membase
+    num_replicas: 1
+    flush_enabled: true
+    storage_backend: couchstore
+
+pre_ddl_statements:
+
+ - query_name: drop index idx_airport_country
+   n1ql: 'DROP INDEX `travel-sample`.idx_airport_country'
+ - query_name: drop index idx_routes_sourceairport
+   n1ql: 'DROP INDEX `travel-sample`.idx_routes_sourceairport'
+ - query_name: drop index idx_hotels_city
+   n1ql: 'DROP INDEX `travel-sample`.idx_hotels_city'
+ - query_name: drop collection `travel-sample`.events.collection1'
+   n1ql: 'DROP COLLECTION `travel-sample`.events.collection1'
+ - query_name: drop collection `example_bucket`.events.collection1'
+   n1ql: 'DROP COLLECTION `example_bucket`.events.collection1'
+ - query_name: drop collection  `analytics_bucket`.events.collection1'
+   n1ql: 'DROP COLLECTION `analytics_bucket`.events.collection1'
+ - query_name: drop scope travel-sample.events
+   n1ql: 'DROP SCOPE `travel-sample`.events'
+
+ - query_name: drop scope example_bucket.events
+   n1ql: 'DROP SCOPE `example_bucket`.events'
+
+ - query_name: drop scope analytics_bucket.events
+   n1ql: 'DROP SCOPE `analytics_bucket`.events'
+ - query_name: insert new airline
+   n1ql: 'UPSERT INTO `travel-sample` (KEY, VALUE) VALUES ("hotel_9999", {"type": "hotel", "name": "Dreamland Hotel", "address": "123 Paradise Lane", "city": "San Francisco", "state": "CA", "country": "USA", "phone": "123-456-7890", "url": "http://dreamlandhotel.com"});'
+ 
+post_ddl_statements:
+
+  - query_name: create index idx_airport_country
+    n1ql: 'CREATE INDEX idx_airport_country ON `travel-sample`(country, airportname, city) WHERE type = "airport";'
+
+  - query_name: create index idx_routes_sourceairport
+    n1ql: 'CREATE INDEX idx_routes_sourceairport ON `travel-sample`(sourceairport, destinationairport, airlineid) WHERE type = "route";'
+
+  - query_name: create  index idx_hotels_city
+    n1ql: 'CREATE INDEX idx_hotels_city ON `travel-sample`(city, name, address, country) WHERE type = "hotel";'
+
+  - query_name: create  scope `travel-sample`.events
+    n1ql: 'CREATE SCOPE `travel-sample`.events'
+
+  - query_name: create scope `example_bucket`.events
+    n1ql: 'CREATE SCOPE `example_bucket`.events'
+
+  - query_name: create scope `analytics_bucket`.events
+    n1ql: 'CREATE SCOPE `analytics_bucket`.events'
+  - query_name: create collection `travel-sample`.events.collection1'
+    n1ql: 'CREATE COLLECTION `travel-sample`.events.collection1'
+
+  - query_name: create collection `example_bucket`.events.collection1'
+    n1ql: 'CREATE COLLECTION `example_bucket`.events.collection1'
+
+  - query_name: create collection`analytics_bucket`.events.collection1'
+    n1ql: 'CREATE COLLECTION `analytics_bucket`.events.collection1'
